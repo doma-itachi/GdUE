@@ -1,6 +1,6 @@
 {
-  "name": "gd-ue",
-  "displayName": "Gd ue",
+  "name": "gdue",
+  "displayName": "GdUE",
   "version": "0.0.1",
   "description": "GdriveUndownloadableExtractor",
   "author": "itachi_doma",
@@ -26,6 +26,9 @@
   "manifest": {
     "host_permissions": [
       "https://*/*"
+    ],
+    "permissions": [
+      "downloads"
     ]
   }
 }

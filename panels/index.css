@@ -1,0 +1,89 @@
+body{
+    margin: 0;
+}
+.App{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #fbfbfb;
+}
+
+.logoWrap{
+    padding: 0 12px;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.25);
+    background-color: white;
+}
+.logoWrap>div{
+    color: #2C2C2C;
+    display: inline;
+}
+.appName{
+    font-size: 50px;
+    font-weight: 800;
+}
+.version{
+    font-size: 22px;
+    padding-left: 4px;
+}
+
+.content{
+    flex-grow: 1;
+}
+
+.controller{
+    margin: 10px;
+    height: 30px;
+    display: flex;
+    flex-direction: row;
+}
+.controllerBtn{
+    transition: 0.3s;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 130px;
+    background-color: #2d2d2d;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    padding: 0 32px;
+}
+.controllerBtnStop{
+    background-color: #ff3838;
+    width: 90px;
+}
+.controllerMsgWrap{
+    padding: 4px;
+    flex-grow: 1;
+    display: grid;
+    align-content: center;
+    color: #2AAD1C;
+}
+
+.logWrap{
+    height: 40vh;
+    border-top: 1px solid #ACACAC;
+    background: #F4F4F4;
+
+    display: flex;
+    flex-direction: column;
+}
+.logHeader{
+    border-bottom: 1px solid #969696;
+    padding-left: 12px;
+    color: #5e5e5e;
+    font-size: 14px;
+}
+ol{
+    overflow-y: scroll;
+    flex-grow: 1;
+    margin: 0;
+    padding-left: 12px;
+}
+li{
+    list-style: none;
+    color: #818181;
+    font-size: 18px;
+}
+.logWarn{
+    color: #FF0000;
+}

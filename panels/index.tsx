@@ -47,12 +47,12 @@ function Controller({isExtract, clicked}){
     return (
         <div className="controller">
             <button className={`${isExtract?"controllerBtnStop":""} controllerBtn`} onClick={clicked}>
-                {!isExtract?"Extract It!":"Stop"}
+                {!isExtract?"Extract!":"Stop"}
             </button>
             <div className="controllerMsgWrap">
-                <div className="controllerMsg">
+                {/* <div className="controllerMsg">
                     Extract completed!
-                </div>
+                </div> */}
             </div>
         </div>
     )
@@ -61,6 +61,7 @@ function Controller({isExtract, clicked}){
 let logs: Log[]=new Array();
 logs.push({context: "抽出開始前に対象のドキュメントを開かないでください", status:LogStatus.warn});
 let setLogs;
+let setIsExtractFn;
 
 const Panel=()=>{
     // function testClick(){
@@ -84,6 +85,7 @@ const Panel=()=>{
         setIsExtract(!isExtract);
     }
 
+    setIsExtractFn=setIsExtract;
     setLogs=setLogItems;
     return(
         <div className="App">
@@ -132,7 +134,7 @@ class PdfViewerManager{
     public static async scrollToEOF(){
         const frameSpeed=400;
         const waitTime_ms=300;
-        let viewer=document.querySelector(".a-b-Xa-lc.a-b-lc");
+        let viewer=document.querySelector(".a-b-Xa-lc.a-b-lc:has(>[role=document] img)");
 
         if(!viewer)return;
 
@@ -247,7 +249,7 @@ function startExtract(){
 
                         //全ページをリクエストするためにスクロールする
                         pushLog("ドキュメントをクロールしています", LogStatus.info);
-                        console.log(chrome.devtools.inspectedWindow.eval(`(${PdfViewerManager.scrollToEOF.toString().replace("async", "async function")})();`));
+                        // console.log(chrome.devtools.inspectedWindow.eval(`(${PdfViewerManager.scrollToEOF.toString().replace("async", "async function")})();`));
                         await new Promise(resolve=>{
                             
                             chrome.devtools.inspectedWindow.eval(`(${PdfViewerManager.scrollToEOF.toString().replace("async", "async function")})();`,
@@ -272,9 +274,9 @@ function startExtract(){
                                 resolve(RequestReses.length);
                             });
                             console.log(`${prevResponseCount}`);
-                            if(RequestReses.length==documentData.pageCount)break;
+                            if(RequestReses.length>=documentData.pageCount)break;
                         }
-                        pushLog("抽出完了", LogStatus.info);
+                        // pushLog("抽出完了", LogStatus.info);
 
                         //URLの順番を取得
                         let pageBlobUrls: string[]=await new Promise(resolve=>{
@@ -324,7 +326,9 @@ function startExtract(){
                             const page=pageBlobUrls.indexOf(RequestReses[i].url);
                             downloadBase64(`${downloadFolder}/${String(page).padStart(4, "0")}.png`, RequestReses[i].content);
                         }
-                        pushLog("抽出が終了しました。", LogStatus.info);
+                        pushLog("正常に終了しました", LogStatus.info);
+                        isDocumentScanning=false;
+                        setIsExtractFn(false);
                     }
                 }
             }

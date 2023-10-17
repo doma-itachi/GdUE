@@ -309,6 +309,8 @@ function startExtract(){
 
                         //ダウンロード処理を行う
                         // let downloadFolder="GdUE_output";
+
+                        //画像でダウンロードする
                         let downloadFolder=documentData.fileName.slice(0, documentData.fileName.lastIndexOf("."));
                         pushLog(`ダウンロード先: downloads/${downloadFolder}/`, LogStatus.info);
                         const downloadBase64=(fileName: string, base64: string)=>{
@@ -326,8 +328,13 @@ function startExtract(){
                             const page=pageBlobUrls.indexOf(RequestReses[i].url);
                             downloadBase64(`${downloadFolder}/${String(page).padStart(4, "0")}.png`, RequestReses[i].content);
                         }
+
+                        //PDFでダウンロードする
+
+                        //終了処理
                         pushLog("正常に終了しました", LogStatus.info);
                         isDocumentScanning=false;
+                        RequestReses=new Array();
                         setIsExtractFn(false);
                     }
                 }

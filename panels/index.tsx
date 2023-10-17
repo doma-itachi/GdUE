@@ -1,5 +1,6 @@
 import { useState, useLayoutEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
+import { PDFDocument, PDFImage } from "pdf-lib";
 
 interface Log{
     context: string;
@@ -10,6 +11,13 @@ enum LogStatus{
     info,
     warn
 }
+
+interface ExtractOptions{
+    bundleToPDF: boolean;
+}
+let extractOptions: ExtractOptions={
+    bundleToPDF: true
+};
 
 function Header(){
     return (
@@ -215,6 +223,10 @@ async function getDocumentData(): Promise<Document>{
 let isDocumentScanning=false;
 function startExtract(){
     isDocumentScanning=true;
+
+    //GoogleDriveを再読み込みさせる
+    chrome.devtools.inspectedWindow.eval("location.reload();");
+
     documentScanTimer=setInterval(e=>{
         // chrome.devtools.inspectedWindow.eval(
         //     `console.log("あいうえお")`,
@@ -305,31 +317,63 @@ function startExtract(){
                             pushLog("整合性の検証に失敗しました。レスポンスの傍受に失敗しました", LogStatus.warn);
                             return;
                         }
-                        pushLog("ダウンロードを開始", LogStatus.info);
-
+                        
                         //ダウンロード処理を行う
                         // let downloadFolder="GdUE_output";
 
-                        //画像でダウンロードする
-                        let downloadFolder=documentData.fileName.slice(0, documentData.fileName.lastIndexOf("."));
-                        pushLog(`ダウンロード先: downloads/${downloadFolder}/`, LogStatus.info);
-                        const downloadBase64=(fileName: string, base64: string)=>{
-                            const bin=Uint8Array.from(atob(base64), (c: String)=>c.charCodeAt(0));
-                            let blob=new Blob([bin], {type: "image/png"});
-                            let objUrl=URL.createObjectURL(blob);
-                            console.log(`fn: ${fileName}, objURL: ${objUrl}`);
+                        if(extractOptions.bundleToPDF){
+                            //PDFでダウンロードする
+                            pushLog("PDFにバンドルしています", LogStatus.info);
+
+                            await new Promise(resolve=>setTimeout(resolve, 500));//これを入れないとカクつく
+
+                            let pdfDoc=await PDFDocument.create();
+
+                            let resUrls: string[]=RequestReses.map(e=>e.url);
+
+                            for(let i=0;i<RequestReses.length;i++){
+                                // resUrls.indexOf(pageBlobUrls[i]);
+                                const img: PDFImage=await pdfDoc.embedPng(RequestReses[resUrls.indexOf(pageBlobUrls[i])].content);
+                                const page=pdfDoc.addPage([img.width, img.height]);
+                                page.drawImage(img, {
+                                    x: 0, y: 0, width: img.width, height: img.height
+                                });
+                            }
+
+                            const pdfBytes: Uint8Array=await pdfDoc.save();
+                            let blob=new Blob([pdfBytes], {type: "application/pdf"});
+                            let blobUrl=URL.createObjectURL(blob);
+                            //dl処理
                             chrome.downloads.download({
-                                url: objUrl,
-                                filename: fileName
-                            });
-                            URL.revokeObjectURL(objUrl);
+                                url: blobUrl,
+                                filename: `${documentData.fileName.slice(0, documentData.fileName.lastIndexOf("."))}.pdf`
+                            })
+
+                            URL.revokeObjectURL(blobUrl);
                         }
-                        for(let i=0;i<RequestReses.length;i++){
-                            const page=pageBlobUrls.indexOf(RequestReses[i].url);
-                            downloadBase64(`${downloadFolder}/${String(page).padStart(4, "0")}.png`, RequestReses[i].content);
+                        else{
+                            pushLog("ダウンロードを開始", LogStatus.info);
+                            //画像でダウンロードする
+                            let downloadFolder=documentData.fileName.slice(0, documentData.fileName.lastIndexOf("."));
+                            pushLog(`ダウンロード先: downloads/${downloadFolder}/`, LogStatus.info);
+                            const downloadBase64=(fileName: string, base64: string)=>{
+                                const bin=Uint8Array.from(atob(base64), (c: String)=>c.charCodeAt(0));
+                                let blob=new Blob([bin], {type: "image/png"});
+                                let objUrl=URL.createObjectURL(blob);
+                                console.log(`fn: ${fileName}, objURL: ${objUrl}`);
+                                chrome.downloads.download({
+                                    url: objUrl,
+                                    filename: fileName
+                                });
+                                URL.revokeObjectURL(objUrl);
+                            }
+                            for(let i=0;i<RequestReses.length;i++){
+                                const page=pageBlobUrls.indexOf(RequestReses[i].url);
+                                downloadBase64(`${downloadFolder}/${String(page).padStart(4, "0")}.png`, RequestReses[i].content);
+                            }
                         }
 
-                        //PDFでダウンロードする
+
 
                         //終了処理
                         pushLog("正常に終了しました", LogStatus.info);

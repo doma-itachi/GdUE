@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useRef } from "react";
+import { useState, useLayoutEffect, useRef, type ChangeEventHandler } from "react";
 import { createRoot } from "react-dom/client";
 import { PDFDocument, PDFImage } from "pdf-lib";
 
@@ -100,9 +100,30 @@ const Panel=()=>{
             <Header/>
             <div className="content">
                 {/* <button onClick={testClick}>{logItems[0].context}</button> */}
+                <SettingsColumn/>
             </div>
             <Controller isExtract={isExtract} clicked={switchExtract}/>
             <Log log={logItems}/>
+        </div>
+    )
+}
+
+const SettingsColumn=()=>{
+    let handleBundlePDF=(e: React.ChangeEvent<HTMLInputElement>)=>{
+        extractOptions.bundleToPDF=e.target.checked;
+        console.log(extractOptions.bundleToPDF);
+    }
+
+    return(
+        <div>
+            <div className="settingsHeader">抽出設定</div>
+            <div className="settingsWrap">
+                <input type="checkbox" onChange={handleBundlePDF}/>
+                <div>
+                    <div className="settingsTitle">PDFにバンドル</div>
+                    <div className="settingsDesc">抽出した画像をPDFにバンドルします</div>
+                </div>
+            </div>
         </div>
     )
 }
@@ -173,6 +194,7 @@ interface RequestRes{
     content: string;
 }
 let RequestReses: RequestRes[]=new Array();
+let isResponseReceiveStarted=false;
 
 async function getDocumentData(): Promise<Document>{
     let filename: string;
@@ -277,10 +299,11 @@ function startExtract(){
                         });
                         while(true){
                             let prevResponseCount: number=-1;
+                            isResponseReceiveStarted=true;
                             prevResponseCount=await new Promise(async function(resolve){
                                 console.log(`関数内: ${prevResponseCount}`);
                                 if(prevResponseCount!=RequestReses.length){
-                                    pushLog(`レスポンスを待機しています...${RequestReses.length}/${documentData.pageCount}`, LogStatus.info);
+                                    // pushLog(`レスポンスを待機しています...${RequestReses.length}/${documentData.pageCount}`, LogStatus.info);
                                 }
                                 await new Promise(r=>setTimeout(r, 1000));
                                 resolve(RequestReses.length);
@@ -288,6 +311,7 @@ function startExtract(){
                             console.log(`${prevResponseCount}`);
                             if(RequestReses.length>=documentData.pageCount)break;
                         }
+                        isResponseReceiveStarted=false;
                         // pushLog("抽出完了", LogStatus.info);
 
                         //URLの順番を取得
@@ -373,12 +397,11 @@ function startExtract(){
                             }
                         }
 
-
-
                         //終了処理
                         pushLog("正常に終了しました", LogStatus.info);
                         isDocumentScanning=false;
                         RequestReses=new Array();
+                        isResponseReceiveStarted=false;
                         setIsExtractFn(false);
                     }
                 }
@@ -422,6 +445,9 @@ chrome.devtools.network.onRequestFinished.addListener(
                     resolve(e);
                 })
             })
+            if(isResponseReceiveStarted){
+                pushLog(`レスポンスを待機しています...${RequestReses.length+1}/${documentData.pageCount}`, LogStatus.info);
+            }
             console.log(`${url}: ${content}`);
             RequestReses.push({url: url, content: content});
             // RequestReses.push()

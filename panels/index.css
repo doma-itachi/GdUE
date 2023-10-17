@@ -6,6 +6,8 @@ body{
     flex-direction: column;
     height: 100vh;
     background-color: #fbfbfb;
+    font-family: 'Noto Sans JP', sans-serif;
+    user-select: none;
 }
 
 .logoWrap{
@@ -19,7 +21,7 @@ body{
 }
 .appName{
     font-size: 50px;
-    font-weight: 800;
+    font-weight: 900;
 }
 .version{
     font-size: 22px;
@@ -82,8 +84,36 @@ ol{
 li{
     list-style: none;
     color: #818181;
-    font-size: 18px;
+    font-size: 24px;
+    user-select: text;
 }
 .logWarn{
     color: #FF0000;
+}
+
+.settingsHeader{
+    font-size: 16px;
+    color: #888;
+    padding-top: 6px;
+    padding-left: 10px;
+}
+.settingsWrap{
+    display: flex;
+    flex-direction: row;
+    padding: 5px 8px;
+    margin: 8px;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 25%);
+    border-radius: 6px;
+}
+.settingsWrap>input{
+    margin-right: 12px;
+}
+.settingsTitle{
+    color: #454545;
+    font-size: 16px;
+}
+.settingsDesc{
+    color: #888888;
+    font-size: 13px;
 }
